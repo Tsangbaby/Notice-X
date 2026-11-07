@@ -77,9 +77,12 @@ private struct NativeGeometry {
     let saved: [Saved]
     let mutationStart: Int
     init(_ banner: Banner) {
-        saved = [banner.look, banner.material, banner.holder, banner.content, banner.target].map {
-            Saved(view: $0, frame: $0.frame, bounds: $0.bounds, transform: $0.transform,
-                  parent: $0.superview, children: $0.subviews.map(ObjectIdentifier.init))
+        saved = [banner.look, banner.material, banner.holder, banner.content, banner.target].map { view in
+            // Preparation may already have inserted our shell. Only the two fixture-native
+            // roots belong to the look's protected child order; teardown must remove the shell.
+            let children = view === banner.look ? [banner.material, banner.holder] : view.subviews
+            return Saved(view: view, frame: view.frame, bounds: view.bounds, transform: view.transform,
+                         parent: view.superview, children: children.map(ObjectIdentifier.init))
         }
         mutationStart = VisualTrace.mutations.count
     }
