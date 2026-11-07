@@ -10,6 +10,8 @@
 		<string>PSLinkCell</string>
 		<key>detail</key>
 		<string>NXSettingsController</string>
+		<key>isController</key>
+		<true/>
 		<key>label</key>
 		<string>Notice-X</string>
 	</dict>

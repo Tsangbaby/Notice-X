@@ -212,6 +212,7 @@ def verify_resources(files):
     entry = loader.get("entry", {})
     assert isinstance(entry, dict), "invalid PreferenceLoader entry"
     assert entry.get("bundle") == "NoticeXPrefs" and entry.get("detail") == "NXSettingsController", "wrong PreferenceLoader entry"
+    assert entry.get("isController") is True, "missing PreferenceLoader controller registration"
     assert entry.get("cell") == "PSLinkCell" and entry.get("label") == "Notice-X", "wrong Settings branding"
     return {"bundle_info": info, "switch": switch, "localizations": locales, "loader": loader}
 

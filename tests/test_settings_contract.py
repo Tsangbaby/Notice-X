@@ -26,6 +26,8 @@ class SettingsContracts(unittest.TestCase):
         entry=plistlib.loads((ROOT/'layout/Library/PreferenceLoader/Preferences/NoticeX.plist').read_bytes())['entry']
         info=plistlib.loads((ROOT/'prefs/Resources/Info.plist').read_bytes())
         self.assertEqual(entry['detail'],'NXSettingsController')
+        self.assertIs(entry.get('isController'),True,
+                      'PreferenceLoader must register the compiled controller bundle for lazy loading')
         self.assertEqual(info['NSPrincipalClass'],'NXSettingsController')
         bridge=(ROOT/'prefs/NoticeXPreferencesBridge.h').read_text()
         self.assertNotIn('initForContentSize',bridge,'do not synthesize forwarding to an unsupported private initializer')

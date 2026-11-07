@@ -206,7 +206,7 @@ def nx_payload():
             NX_BUNDLE + "en.lproj/Root.strings": b'"NOTICE_X" = "Notice-X";\n"ENABLED" = "Enabled";\n',
             NX_BUNDLE + "zh-Hans.lproj/Root.strings": '"NOTICE_X" = "Notice-X";\n"ENABLED" = "启用";\n'.encode(),
             "Library/PreferenceLoader/Preferences/NoticeX.plist": p({"entry": {"bundle": "NoticeXPrefs", "cell": "PSLinkCell",
-                "label": "Notice-X", "detail": "NXSettingsController"}})}
+                "label": "Notice-X", "detail": "NXSettingsController", "isController": True}})}
 
 
 def nx_tar(files, extra=None):
@@ -269,6 +269,20 @@ class NXOriginalDebContract(unittest.TestCase):
                 invalid[name]=nx_fat(module,filetype=8)
                 with self.assertRaisesRegex(AssertionError,'file type'):
                     self.verify(nx_deb(invalid))
+
+    def test_rejects_missing_or_disabled_preferenceloader_controller_registration(self):
+        path='Library/PreferenceLoader/Preferences/NoticeX.plist'
+        for value in (None,False):
+            with self.subTest(isController=value):
+                files=nx_payload()
+                loader=plistlib.loads(files[path])
+                if value is None:
+                    loader['entry'].pop('isController')
+                else:
+                    loader['entry']['isController']=value
+                files[path]=plistlib.dumps(loader,fmt=plistlib.FMT_BINARY)
+                with self.assertRaisesRegex(AssertionError,'PreferenceLoader controller registration'):
+                    self.verify(nx_deb(files))
 
     def test_rejects_stale_preferences_bundle_version(self):
         files = nx_payload()
