@@ -75,8 +75,9 @@ final class NXBannerCoordinator {
         guard Thread.isMainThread else { return }
         guard let context = context(owner) else { NXDiagnostic.record(.layoutWithoutSession); return }
         guard !context.ending, !context.installing else { NXDiagnostic.record(.layoutSessionBusy); return }
+        let hasActiveBannerSession = context.owner === owner && !context.ending
         guard configuration.enabled, NXUnlockedHomeOrApp(),
-              let parts = NXResolveBannerParts(owner) else {
+              let parts = NXResolveBannerParts(owner, hasActiveBannerSession) else {
             NXDiagnostic.record(.layoutContextRejected)
             if context.animator != nil { retire(owner) }
             return

@@ -22,7 +22,7 @@ These are dumped declarations, not method implementations or proof of a target h
 
 Observe banner-specific lifecycle callbacks on `SBNotificationPresentableViewController`, with `NCNotificationPresentableViewController` as the capability-checked fallback. Install only when the complete needed method group matches `void` returns and exact object argument shapes.
 
-Resolve `notificationViewController` → loaded short-look view → `_isBanner` → existing `backgroundMaterialView` and `_notificationContentView`. Preserve exact native request and view identities. Exclude nonbanners, critical alerts, locked/unlocking/lock-visible state and visible/presented Cover Sheet. An unknown capability is native pass-through.
+Resolve `notificationViewController` → loaded short-look view → existing `backgroundMaterialView` and `_notificationContentView`. Require a non-ending banner session for the same owner, created only by the native banner lifecycle. The iOS 15.4.1 device trace reached that lifecycle with `_isBanner == NO`, so only that exact OS tuple uses lifecycle/session identity instead of the look flag. Other versions retain the original ABI-checked `_isBanner` filter. Preserve exact native request and view identities. Exclude nonbanners without an active session, critical alerts, locked/unlocking/lock-visible state and visible/presented Cover Sheet. An unknown required capability is native pass-through. This admission repair is a functional verification candidate, not device-proven styling.
 
 The action chain is untouched: no Hook of notification delivery, tap handling, action execution or response sending. Native user-interaction and long-look callbacks retire our visual session before forwarding, so the system takes full visual ownership.
 

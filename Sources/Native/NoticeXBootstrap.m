@@ -99,8 +99,19 @@ BOOL NXUnlockedHomeOrApp(void) {
     }
 }
 
-NXBannerParts *NXResolveBannerParts(id owner) {
+static BOOL NXLifecycleOwnsBannerIdentity(void) {
+    static dispatch_once_t once;
+    static BOOL usesLifecycle;
+    dispatch_once(&once, ^{
+        NSOperatingSystemVersion os = NSProcessInfo.processInfo.operatingSystemVersion;
+        usesLifecycle = os.majorVersion == 15 && os.minorVersion == 4 && os.patchVersion == 1;
+    });
+    return usesLifecycle;
+}
+
+NXBannerParts *NXResolveBannerParts(id owner, BOOL hasActiveBannerSession) {
     if (!NSThread.isMainThread) { NXDiagnosticRecord(NXDiagnosticNativeCodeResolveNotMain); return nil; }
+    if (!hasActiveBannerSession) { NXDiagnosticRecord(NXDiagnosticNativeCodeResolveNotBanner); return nil; }
     if (!NXUnlockedHomeOrApp()) { NXDiagnosticRecord(NXDiagnosticNativeCodeResolveContextRejected); return nil; }
     @try {
         Class presentableClass = NSClassFromString(@"NCNotificationPresentableViewController");
@@ -121,11 +132,16 @@ NXBannerParts *NXResolveBannerParts(id owner) {
         if (![look isKindOfClass:lookClass] || ![look isKindOfClass:UIView.class]) {
             NXDiagnosticRecord(NXDiagnosticNativeCodeResolveLookMissing); return nil;
         }
-        BOOL banner = NO;
-        if (!NXReadBool(look, @selector(_isBanner), &banner)) {
-            NXDiagnosticRecord(NXDiagnosticNativeCodeBannerUnreadable); return nil;
+        // The 15.4.1 trace reached the native banner lifecycle while the look
+        // flag was false. Use that same owner's active session on this OS only.
+        // All other OS versions retain the original ABI-checked look predicate.
+        if (!NXLifecycleOwnsBannerIdentity()) {
+            BOOL banner = NO;
+            if (!NXReadBool(look, @selector(_isBanner), &banner)) {
+                NXDiagnosticRecord(NXDiagnosticNativeCodeBannerUnreadable); return nil;
+            }
+            if (!banner) { NXDiagnosticRecord(NXDiagnosticNativeCodeResolveNotBanner); return nil; }
         }
-        if (!banner) { NXDiagnosticRecord(NXDiagnosticNativeCodeResolveNotBanner); return nil; }
         id request = NXObjectGetter(controller, @selector(notificationRequest));
         BOOL critical = YES;
         if (![request isKindOfClass:NSObject.class]) {

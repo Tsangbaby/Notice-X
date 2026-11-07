@@ -36,7 +36,7 @@ int main(int argc, const char *argv[]) { @autoreleasepool {
     } else {
         NSDictionary *initial = Snapshot();
         Require([initial isKindOfClass:NSDictionary.class]);
-        Require([initial[@"build"] isEqual:@"banner-entry-1541-v1"]);
+        Require([initial[@"build"] isEqual:@"banner-session-1541-v2"]);
         Require(CFGetTypeID((__bridge CFTypeRef)initial[@"resetConfirmed"]) == CFBooleanGetTypeID());
         Require([initial[@"resetConfirmed"] boolValue]);
         Require([initial[@"trace"] isEqual:@[@"runtime_start"]]);

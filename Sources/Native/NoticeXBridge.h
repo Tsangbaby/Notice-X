@@ -51,5 +51,5 @@ FOUNDATION_EXPORT void NXDiagnosticRecord(int32_t code);
 @end
 
 FOUNDATION_EXPORT BOOL NXUnlockedHomeOrApp(void);
-FOUNDATION_EXPORT NXBannerParts * _Nullable NXResolveBannerParts(id owner);
+FOUNDATION_EXPORT NXBannerParts * _Nullable NXResolveBannerParts(id owner, BOOL hasActiveBannerSession);
 NS_ASSUME_NONNULL_END

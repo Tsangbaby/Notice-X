@@ -5,7 +5,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-DIAGNOSTIC_VERSION = "0.1.0-beta1+diag1"
+DIAGNOSTIC_VERSION = "0.1.0-beta2"
 DIAGNOSTIC_DOMAIN = "com.tsangbaby.noticex.diag1541"
 
 

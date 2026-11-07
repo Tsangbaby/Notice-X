@@ -7,7 +7,7 @@
 
 static CFStringRef const NXDiagnosticDomain = CFSTR("com.tsangbaby.noticex.diag1541");
 static CFStringRef const NXSnapshotKey = CFSTR("snapshot");
-static NSString *const NXDiagnosticBuild = @"banner-entry-1541-v1";
+static NSString *const NXDiagnosticBuild = @"banner-session-1541-v2";
 static const NSUInteger NXMaxEvents = 96;
 static const NSUInteger NXMaxPending = 32;
 static const NSUInteger NXMaxBytes = 16384;

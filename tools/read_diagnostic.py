@@ -6,7 +6,7 @@ from pathlib import Path
 import plistlib
 
 MAX_BYTES = 16384
-BUILD = "banner-entry-1541-v1"
+BUILD = "banner-session-1541-v2"
 ALLOWED_PHASES = frozenset("""
 native_not_main native_managers_missing native_state_unreadable
 native_context_rejected native_context_ready native_resolve_not_main
