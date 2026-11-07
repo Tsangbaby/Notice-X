@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Notice-X</key>
+	<string>Notice-X</string>
+	<key>Enable Notice-X</key>
+	<string>启用 Notice-X</string>
+	<key>About</key>
+	<string>关于</string>
+	<key>INTRO</key>
+	<string>为解锁后的普通通知横幅添加 Glint 风格卡片展开效果，保留系统点击和长按操作。不修改锁屏和通知中心。开启后从下一条通知生效。</string>
+	<key>AUTHOR</key>
+	<string>作者与维护者：Tsangbaby
+0.1.0-beta1 · RootHide 功能验证版</string>
+</dict>
+</plist>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Notice-X</key>
+	<string>Notice-X</string>
+	<key>Enable Notice-X</key>
+	<string>Enable Notice-X</string>
+	<key>About</key>
+	<string>About</string>
+	<key>INTRO</key>
+	<string>Glint-style card reveals for ordinary unlocked notification banners. Native taps and long-press actions are preserved. Lock Screen and Notification Center remain unchanged. Enable takes effect on the next banner.</string>
+	<key>AUTHOR</key>
+	<string>Author &amp; Maintainer: Tsangbaby
+0.1.0-beta1 · RootHide functional candidate</string>
+</dict>
+</plist>

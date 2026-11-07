@@ -1,0 +1,7 @@
+.theos/
+packages/
+ci-artifacts/
+.build/
+__pycache__/
+*.py[cod]
+.DS_Store

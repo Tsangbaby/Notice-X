@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Notice-X</string>
+			<key>footerText</key>
+			<string>INTRO</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Enable Notice-X</string>
+			<key>key</key>
+			<string>enabled</string>
+			<key>defaults</key>
+			<string>com.tsangbaby.noticex</string>
+			<key>default</key>
+			<false/>
+			<key>get</key>
+			<string>readPreferenceValue:</string>
+			<key>set</key>
+			<string>setPreferenceValue:specifier:</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>About</string>
+			<key>footerText</key>
+			<string>AUTHOR</string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>Notice-X</string>
+</dict>
+</plist>
