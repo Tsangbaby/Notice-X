@@ -11,6 +11,7 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = NoticeX
 NoticeX_FILES = Sources/Core/NoticePolicy.swift Sources/Support/NoticePreferences.swift \
+    Sources/Support/NoticeDiagnostics.swift Sources/Native/NoticeXDiagnostics.m \
     Sources/Runtime/NoticeRuntime.swift Sources/UI/NoticeCardAnimator.swift \
     Sources/UI/NoticeBannerCoordinator.swift Sources/Native/NoticeXBootstrap.m
 NoticeX_FRAMEWORKS = Foundation UIKit QuartzCore

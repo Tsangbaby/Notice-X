@@ -40,6 +40,7 @@ class NXBuildMetadataContract(unittest.TestCase):
         self.assertEqual(main.get("ARCHS"), "arm64 arm64e")
         self.assertEqual(main.get("NoticeX_FILES", "").split(), [
             "Sources/Core/NoticePolicy.swift", "Sources/Support/NoticePreferences.swift",
+            "Sources/Support/NoticeDiagnostics.swift", "Sources/Native/NoticeXDiagnostics.m",
             "Sources/Runtime/NoticeRuntime.swift", "Sources/UI/NoticeCardAnimator.swift",
             "Sources/UI/NoticeBannerCoordinator.swift", "Sources/Native/NoticeXBootstrap.m"])
         self.assertEqual(main.get("NoticeX_LIBRARIES"), "substrate")
@@ -60,7 +61,7 @@ class NXBuildMetadataContract(unittest.TestCase):
         control = dict(re.findall(r"^([\w-]+): (.*)$", text("control"), re.M))
         self.assertEqual(control.get("Package"), "com.tsangbaby.noticex")
         self.assertEqual(control.get("Name"), "Notice-X")
-        self.assertEqual(control.get("Version"), "0.1.0-beta1")
+        self.assertEqual(control.get("Version"), "0.1.0-beta3")
         self.assertEqual(control.get("Architecture"), "iphoneos-arm64e")
         for key in ("Author", "Maintainer"):
             self.assertEqual(control.get(key), "Tsangbaby")
@@ -91,7 +92,7 @@ class NXWorkflowContract(unittest.TestCase):
         raw = text(".github/workflows/roothide.yml")
         self.assertTrue(raw, "missing pinned RootHide workflow")
         workflow = json.loads(raw)  # JSON is also YAML; no YAML parser dependency.
-        self.assertEqual(workflow["on"], {"push": {"branches": ["main"]}})
+        self.assertEqual(workflow["on"], {"push": {"branches": ["main", "diag/banner-entry-1541", "fix/banner-session-admission-1541", "fix/whole-shell-reveal-beta3"]}})
         self.assertEqual(workflow["permissions"], {"contents": "read"})
         self.assertEqual(set(workflow["jobs"]), {"build"})
         job = workflow["jobs"]["build"]
@@ -473,7 +474,7 @@ class NXEvidenceContract(unittest.TestCase):
             root = pathlib.Path(folder); out = root / "evidence"; out.mkdir()
             (root / "control").write_text(text("control"))
             (root / "packages").mkdir()
-            name = "com.tsangbaby.noticex_0.1.0-beta1_iphoneos-arm64e.deb"
+            name = "com.tsangbaby.noticex_0.1.0-beta3_iphoneos-arm64e.deb"
             original = root / "packages" / name; original.write_bytes(nx_deb())
             # Deliberately synthetic provenance for this isolated unit fixture only.
             scope = {"source_sha": "a" * 40, "repository": "Tsangbaby/Notice-X", "run_id": "12", "attempt": "1",

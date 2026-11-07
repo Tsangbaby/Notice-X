@@ -1,4 +1,7 @@
 #import "RuntimeBridge.h"
+// This fixture isolates forwarding; the real bounded sink has its own Foundation host.
+void NXDiagnosticBegin(void) {}
+void NXDiagnosticRecord(int32_t code) { (void)code; }
 static NSMutableArray<NSString *> *events;
 static NSLock *eventLock;
 static NSInteger installs;

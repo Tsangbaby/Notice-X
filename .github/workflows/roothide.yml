@@ -3,7 +3,10 @@
   "on": {
     "push": {
       "branches": [
-        "main"
+        "main",
+        "diag/banner-entry-1541",
+        "fix/banner-session-admission-1541",
+        "fix/whole-shell-reveal-beta3"
       ]
     }
   },

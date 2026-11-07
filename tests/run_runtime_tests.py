@@ -26,7 +26,8 @@ def run_runtime(root:Path,out:Path,compiler:str,sdk:list[str]):
            '-c',str(root/'tests/Runtime/runtime_fixture.m'),'-o',str(obj)]
         binary=out/('notice-runtime-'+mode)
         s=[compiler,'-swift-version','5','-O',*sdk,'-import-objc-header',str(root/'tests/Runtime/RuntimeBridge.h'),
-           str(path),str(root/'tests/Runtime/main.swift'),str(obj),'-o',str(binary)]
+           str(path),str(root/'Sources/Support/NoticeDiagnostics.swift'),
+           str(root/'tests/Runtime/main.swift'),str(obj),'-o',str(binary)]
         for label,command in [('native',c),('swift',s)]:
             result=subprocess.run(command,capture_output=True,text=True,timeout=120)
             (out/('runtime-'+mode+'-'+label+'-compile.log')).write_text(result.stdout+result.stderr)
