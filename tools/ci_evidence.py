@@ -117,8 +117,10 @@ def verify_compile_log(raw, graph):
     These are build invocation/completion evidence, not runtime correctness.
     """
     raw = re.sub(r"\x1b\[[0-9;]*m", "", raw)
+    # The pinned Swift recipe continues its output-parser pipe onto the next line.
+    logical = raw.replace("\\\n", "")
     seen = set()
-    for line in raw.splitlines():
+    for line in logical.splitlines():
         try:
             tokens = shlex.split(line)
         except ValueError:
@@ -126,6 +128,16 @@ def verify_compile_log(raw, graph):
         compilers = [Path(token).name for token in tokens]
         if "-c" not in tokens or not any(name in ("swiftc", "clang") for name in compilers):
             continue
+        if "swiftc" in compilers:
+            # -Xcc forwards one argument to Clang; its -target is not the Swift driver's.
+            driver, index = [], 0
+            while index < len(tokens):
+                if tokens[index] == "-Xcc":
+                    index += 2
+                else:
+                    driver.append(tokens[index])
+                    index += 1
+            tokens = driver
         if "-target" not in tokens:
             continue
         index = tokens.index("-target")

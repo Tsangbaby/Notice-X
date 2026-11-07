@@ -418,6 +418,21 @@ class NXEvidenceContract(unittest.TestCase):
             lines.append(f'==> Signing {target}...')
         raw = "\n".join(lines) + "\n"
         module.verify_compile_log(raw, graph)
+        continued='\n'.join(line+' \\\n| /theos/parse-swiftc-output' if '/swiftc ' in line else line
+                            for line in lines)+'\n'
+        forwarded=raw.replace('swiftc -c -target ',
+                              'swiftc -c -Xcc -target -Xcc arm64-apple-ios15.0 -target ')
+        for form,value in [('shell-continuation',continued),('forwarded-clang-target',forwarded),
+                           ('both',continued.replace('swiftc -c -target ',
+                              'swiftc -c -Xcc -target -Xcc arm64-apple-ios15.0 -target '))]:
+            with self.subTest(form=form):
+                module.verify_compile_log(value,graph)
+        missing_driver=forwarded
+        for arch in ('arm64','arm64e'):
+            missing_driver=missing_driver.replace(' -target '+arch+'-apple-ios15.0 -emit-module-path',
+                                                  ' -emit-module-path')
+        with self.assertRaisesRegex(AssertionError,'compile'):
+            module.verify_compile_log(missing_driver,graph)
         missing = raw.replace("Sources/Native/NoticeXBootstrap.m", "wrong.m", 1)
         with self.assertRaisesRegex(AssertionError, "compile"):
             module.verify_compile_log(missing, graph)
