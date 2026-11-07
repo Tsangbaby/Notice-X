@@ -8,3 +8,5 @@ void NXFixtureClearEvents(void);
 id NXFixtureMakeOwner(void);
 NSInteger NXFixtureHookCount(void);
 void NXFixtureReenterOnNextDisappear(void);
+void NXDiagnosticBegin(void);
+void NXDiagnosticRecord(int32_t code);

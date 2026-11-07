@@ -3,7 +3,8 @@
   "on": {
     "push": {
       "branches": [
-        "main"
+        "main",
+        "diag/banner-entry-1541"
       ]
     }
   },

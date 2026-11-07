@@ -6,6 +6,8 @@
 static int starts, images, assertions;
 void NXStart(void) { starts++; }
 void NXImagesChanged(void) { images++; }
+void NXDiagnosticBegin(void) {}
+void NXDiagnosticRecord(int32_t code) { (void)code; }
 static void Require(BOOL ok, const char *reason) {
     assertions++;
     if (!ok) { fprintf(stderr,"NOTICE_X_NATIVE_FAIL: %s\n",reason); exit(1); }

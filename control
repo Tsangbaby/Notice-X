@@ -1,6 +1,6 @@
 Package: com.tsangbaby.noticex
 Name: Notice-X
-Version: 0.1.0-beta1
+Version: 0.1.0-beta1+diag1
 Architecture: iphoneos-arm64e
 Description: Default-off Swift and UIKit styling for unlocked ordinary notification banners.
 Maintainer: Tsangbaby

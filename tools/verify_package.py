@@ -36,7 +36,7 @@ FILTER = "Library/MobileSubstrate/DynamicLibraries/NoticeX.plist"
 BUNDLE = "Library/PreferenceBundles/NoticeXPrefs.bundle/"
 LOADER = "Library/PreferenceLoader/Preferences/NoticeX.plist"
 IDENTITY = {"Package": "com.tsangbaby.noticex", "Name": "Notice-X",
-            "Version": "0.1.0-beta1", "Architecture": "iphoneos-arm64e",
+            "Version": "0.1.0-beta1+diag1", "Architecture": "iphoneos-arm64e",
             "Author": "Tsangbaby", "Maintainer": "Tsangbaby"}
 DEPENDENCIES = "mobilesubstrate, preferenceloader, firmware (>= 15.0)"
 

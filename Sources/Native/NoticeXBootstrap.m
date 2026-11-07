@@ -63,58 +63,96 @@ static BOOL NXReadBool(id object, SEL selector, BOOL *value) {
 }
 
 BOOL NXUnlockedHomeOrApp(void) {
-    if (!NSThread.isMainThread) return NO;
+    if (!NSThread.isMainThread) { NXDiagnosticRecord(NXDiagnosticNativeCodeNotMain); return NO; }
     @try {
         Class lockClass = NSClassFromString(@"SBLockScreenManager");
         Class coverClass = NSClassFromString(@"SBCoverSheetPresentationManager");
         id lock = NXObjectGetter(lockClass, @selector(sharedInstanceIfExists));
         id cover = NXObjectGetter(coverClass, @selector(sharedInstanceIfExists));
-        if (!lock || !cover) return NO;
+        if (!lock || !cover) { NXDiagnosticRecord(NXDiagnosticNativeCodeManagersMissing); return NO; }
         BOOL locked = YES, unlocking = YES, visible = YES, presented = YES, coverVisible = YES;
-        return NXReadBool(lock, @selector(isUILocked), &locked) &&
-            NXReadBool(lock, @selector(isUIUnlocking), &unlocking) &&
-            NXReadBool(lock, @selector(isLockScreenVisible), &visible) &&
-            NXReadBool(cover, @selector(isPresented), &presented) &&
-            NXReadBool(cover, @selector(isVisible), &coverVisible) &&
-            !locked && !unlocking && !visible && !presented && !coverVisible;
+        if (!NXReadBool(lock, @selector(isUILocked), &locked)) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeLockUnreadable); return NO;
+        }
+        if (!NXReadBool(lock, @selector(isUIUnlocking), &unlocking)) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeUnlockingUnreadable); return NO;
+        }
+        if (!NXReadBool(lock, @selector(isLockScreenVisible), &visible)) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeLockVisibleUnreadable); return NO;
+        }
+        if (!NXReadBool(cover, @selector(isPresented), &presented)) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeCoverPresentedUnreadable); return NO;
+        }
+        if (!NXReadBool(cover, @selector(isVisible), &coverVisible)) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeCoverVisibleUnreadable); return NO;
+        }
+        if (locked) { NXDiagnosticRecord(NXDiagnosticNativeCodeLocked); return NO; }
+        if (unlocking) { NXDiagnosticRecord(NXDiagnosticNativeCodeUnlocking); return NO; }
+        if (visible) { NXDiagnosticRecord(NXDiagnosticNativeCodeLockVisible); return NO; }
+        if (presented) { NXDiagnosticRecord(NXDiagnosticNativeCodeCoverPresented); return NO; }
+        if (coverVisible) { NXDiagnosticRecord(NXDiagnosticNativeCodeCoverVisible); return NO; }
+        NXDiagnosticRecord(NXDiagnosticNativeCodeContextReady);
+        return YES;
     } @catch (__unused NSException *exception) {
+        NXDiagnosticRecord(NXDiagnosticNativeCodeException);
         return NO;
     }
 }
 
 NXBannerParts *NXResolveBannerParts(id owner) {
-    if (!NSThread.isMainThread || !NXUnlockedHomeOrApp()) return nil;
+    if (!NSThread.isMainThread) { NXDiagnosticRecord(NXDiagnosticNativeCodeResolveNotMain); return nil; }
+    if (!NXUnlockedHomeOrApp()) { NXDiagnosticRecord(NXDiagnosticNativeCodeResolveContextRejected); return nil; }
     @try {
         Class presentableClass = NSClassFromString(@"NCNotificationPresentableViewController");
         Class shortControllerClass = NSClassFromString(@"NCNotificationShortLookViewController");
         Class lookClass = NSClassFromString(@"NCNotificationShortLookView");
-        if (!presentableClass || !shortControllerClass || !lookClass ||
-            ![owner isKindOfClass:presentableClass]) return nil;
+        if (!presentableClass || !shortControllerClass || !lookClass) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeResolveClassesMissing); return nil;
+        }
+        if (![owner isKindOfClass:presentableClass]) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeResolveOwnerRejected); return nil;
+        }
         id controller = NXObjectGetter(owner, @selector(notificationViewController));
-        if (![controller isKindOfClass:shortControllerClass]) return nil;
+        if (![controller isKindOfClass:shortControllerClass]) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeResolveControllerRejected); return nil;
+        }
         id look = NXObjectGetter(controller, @selector(_notificationShortLookViewIfLoaded));
         if (!look) look = NXObjectGetter(controller, @selector(_lookViewIfLoaded));
-        if (![look isKindOfClass:lookClass] || ![look isKindOfClass:UIView.class]) return nil;
+        if (![look isKindOfClass:lookClass] || ![look isKindOfClass:UIView.class]) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeResolveLookMissing); return nil;
+        }
         BOOL banner = NO;
-        if (!NXReadBool(look, @selector(_isBanner), &banner) || !banner) return nil;
+        if (!NXReadBool(look, @selector(_isBanner), &banner)) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeBannerUnreadable); return nil;
+        }
+        if (!banner) { NXDiagnosticRecord(NXDiagnosticNativeCodeResolveNotBanner); return nil; }
         id request = NXObjectGetter(controller, @selector(notificationRequest));
         BOOL critical = YES;
-        if (![request isKindOfClass:NSObject.class] ||
-            !NXReadBool(request, @selector(isCriticalAlert), &critical) || critical) return nil;
+        if (![request isKindOfClass:NSObject.class]) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeResolveRequestRejected); return nil;
+        }
+        if (!NXReadBool(request, @selector(isCriticalAlert), &critical)) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeCriticalUnreadable); return nil;
+        }
+        if (critical) { NXDiagnosticRecord(NXDiagnosticNativeCodeResolveCriticalAlert); return nil; }
         id material = NXObjectGetter(look, @selector(backgroundMaterialView));
         id content = NXObjectGetter(look, @selector(_notificationContentView));
         if (![material isKindOfClass:UIView.class] || ![content isKindOfClass:UIView.class] ||
             material == look || content == look || material == content ||
             [(UIView *)content isDescendantOfView:material] ||
             ![(UIView *)material isDescendantOfView:look] ||
-            ![(UIView *)content isDescendantOfView:look]) return nil;
+            ![(UIView *)content isDescendantOfView:look]) {
+            NXDiagnosticRecord(NXDiagnosticNativeCodeResolveHierarchyRejected); return nil;
+        }
         NXBannerParts *parts = [NXBannerParts new];
         parts.look = look;
         parts.material = material;
         parts.content = content;
         parts.requestIdentity = request;
+        NXDiagnosticRecord(NXDiagnosticNativeCodeResolveReady);
         return parts;
     } @catch (__unused NSException *exception) {
+        NXDiagnosticRecord(NXDiagnosticNativeCodeException);
         return nil;
     }
 }

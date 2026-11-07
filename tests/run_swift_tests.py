@@ -41,7 +41,9 @@ def main():
     if sys.platform=='darwin':
         from run_native_tests import run_native
         from run_runtime_tests import run_runtime
+        from run_diagnostic_tests import run_diagnostic
         run_native(root,out)
         run_runtime(root,out,compiler,sdk)
+        run_diagnostic(root,out)
 
 if __name__=='__main__':main()
