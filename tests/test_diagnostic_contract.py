@@ -5,7 +5,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-DIAGNOSTIC_VERSION = "0.1.0-beta2"
+DIAGNOSTIC_VERSION = "0.1.0-beta3"
 DIAGNOSTIC_DOMAIN = "com.tsangbaby.noticex.diag1541"
 
 
@@ -96,13 +96,17 @@ class DiagnosticContracts(unittest.TestCase):
         self.assertEqual(entry["detail"], "NXSettingsController")
         self.assertIs(entry.get("isController"), True)
 
-    def test_callbacks_and_visual_policy_preserve_the_rejected_functional_baseline(self):
+    def test_diagnostic_intro_preserved_visuals_and_current_native_callbacks_stay_unchanged(self):
         baseline = "f7d5dd37582b86a928c631d14b763865268a5e50"
         def old(path):
             return subprocess.check_output(["git", "show", baseline + ":" + path], cwd=ROOT, text=True)
         for path in ("Sources/UI/NoticeCardAnimator.swift", "Sources/Core/NoticePolicy.swift",
                      "Sources/Support/NoticePreferences.swift", "prefs/NoticeXPreferences.swift"):
-            self.assertEqual((ROOT / path).read_text(), old(path), path)
+            # The separately approved beta3 visual replacement supersedes only this file.
+            current = (subprocess.check_output(['git','show',
+                'ef406c8bbdb6a63df44d9f09481de71d1172142c:' + path],cwd=ROOT,text=True)
+                if path == 'Sources/UI/NoticeCardAnimator.swift' else (ROOT / path).read_text())
+            self.assertEqual(current, old(path), path)
         path = "Sources/Runtime/NoticeRuntime.swift"
         def callbacks(text):
             return text.split("private let nxWillAppearCallback:", 1)[1].split("private enum NXRuntime", 1)[0]

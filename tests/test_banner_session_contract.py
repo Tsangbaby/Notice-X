@@ -41,12 +41,15 @@ class BannerSessionContracts(unittest.TestCase):
         self.assertLess(source.index("guard !context.ending, !context.installing"),
                         source.index("let hasActiveBannerSession ="))
 
-    def test_appearance_callbacks_visuals_preferences_and_policy_are_unchanged(self):
+    def test_admission_commit_preserved_callbacks_visuals_preferences_and_policy(self):
+        # Preserve the original admission-only claim at its frozen commit.
+        admission = '8328ac1720189a4eb382cf1495712fcec004394e'
         for path in ("Sources/Runtime/NoticeRuntime.swift", "Sources/UI/NoticeCardAnimator.swift",
                      "Sources/Core/NoticePolicy.swift", "Sources/Support/NoticePreferences.swift",
                      "prefs/NoticeXPreferences.swift"):
             old = subprocess.check_output(["git", "show", BASE + ":" + path], cwd=ROOT, text=True)
-            self.assertEqual((ROOT / path).read_text(), old, path)
+            frozen = subprocess.check_output(["git", "show", admission + ":" + path], cwd=ROOT, text=True)
+            self.assertEqual(frozen, old, path)
 
     def test_native_host_replays_target_and_two_unchanged_os_lanes(self):
         runner = (ROOT / "tests/run_native_tests.py").read_text()

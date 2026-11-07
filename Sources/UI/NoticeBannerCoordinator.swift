@@ -10,6 +10,8 @@ private final class NXBannerContext: NSObject {
     var animator: NXCardAnimator?
     var ending = false
     var installing = false
+    var nativeAppeared = false
+    var openingScheduled = false
     init(owner:AnyObject) { self.owner = owner }
     deinit { animator?.restore() }
 }
@@ -62,13 +64,20 @@ final class NXBannerCoordinator {
         objc_setAssociatedObject(owner,&nxBannerContextKey,context,.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         contexts.add(context)
         NXDiagnostic.record(.bannerSessionCreated)
+        // One bounded escape hatch, not a polling loop or a second animation clock.
+        DispatchQueue.main.asyncAfter(deadline:.now()+1.5) { [weak self, weak context, weak owner] in
+            guard let self = self, let context = context, let owner = owner,
+                  self.context(owner) === context, !context.ending,
+                  !context.openingScheduled else { return }
+            self.retire(owner)
+        }
     }
 
     func didAppear(_ owner:AnyObject) {
         NXDiagnostic.record(.bannerDidAppear)
         guard Thread.isMainThread, let context = context(owner), !context.ending else { return }
+        context.nativeAppeared = true
         layout(owner)
-        context.animator?.open()
     }
 
     func layout(_ owner:AnyObject) {
@@ -88,6 +97,7 @@ final class NXBannerCoordinator {
             }
             NXDiagnostic.record(.visualReused)
             animator.layout()
+            scheduleOpen(owner,context:context)
             return
         }
         let bounds = parts.look.bounds
@@ -107,9 +117,22 @@ final class NXBannerCoordinator {
         context.animator = animator
         if animator == nil { NXDiagnostic.record(.visualConstructorRejected) }
         else { NXDiagnostic.record(.visualInstalled) }
-        // Start as soon as a real attached surface is ready; never leave hidden content waiting
-        // indefinitely for a second private lifecycle callback.
-        animator?.open()
+        scheduleOpen(owner,context:context)
+    }
+
+    private func scheduleOpen(_ owner:AnyObject, context:NXBannerContext) {
+        guard context.nativeAppeared, !context.openingScheduled,
+              !context.ending, context.animator != nil else { return }
+        context.openingScheduled = true
+        // Run outside native transition completion/layout transactions. Do not replay native entry.
+        DispatchQueue.main.async { [weak self, weak context, weak owner] in
+            guard let self = self, let context = context, let owner = owner,
+                  self.context(owner) === context, !context.ending,
+                  context.nativeAppeared, self.configuration.enabled else { return }
+            self.layout(owner)
+            guard self.context(owner) === context, !context.ending else { return }
+            context.animator?.open()
+        }
     }
 
     func willDisappear(_ owner:AnyObject) {
