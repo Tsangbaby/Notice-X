@@ -52,7 +52,7 @@
         },
         {
           "name": "Stage hash-pinned Preferences link stub only",
-          "run": "set -euo pipefail\n{\n mkdir -p \"$THEOS/lib/iphone/Preferences.framework\"\n target=\"$THEOS/lib/iphone/Preferences.framework/Preferences.tbd\"\n curl --fail --location --retry 2 https://raw.githubusercontent.com/theos/sdks/0222fd5413cf4b9af096f37b4621afa2688572f7/iPhoneOS16.5.sdk/System/Library/PrivateFrameworks/Preferences.framework/Preferences.tbd --output \"$target\"\n printf '%s  %s\n' 9daceaff6cf94346594a12f9ef9c2ea23de15475b516f9e33c20871a018c098b \"$target\" | shasum -a 256 --check\n cp \"$target\" ci-artifacts/Preferences.tbd\n} 2>&1 | tee ci-artifacts/setup-preferences.log\n"
+          "run": "set -euo pipefail\n{\n mkdir -p \"$THEOS/lib/iphone/roothide/Preferences.framework\"\n target=\"$THEOS/lib/iphone/roothide/Preferences.framework/Preferences.tbd\"\n curl --fail --location --retry 2 https://raw.githubusercontent.com/theos/sdks/0222fd5413cf4b9af096f37b4621afa2688572f7/iPhoneOS16.5.sdk/System/Library/PrivateFrameworks/Preferences.framework/Preferences.tbd --output \"$target\"\n printf '%s  %s\n' 9daceaff6cf94346594a12f9ef9c2ea23de15475b516f9e33c20871a018c098b \"$target\" | shasum -a 256 --check\n cp \"$target\" ci-artifacts/Preferences.tbd\n} 2>&1 | tee ci-artifacts/setup-preferences.log\n"
         },
         {
           "name": "Run all Python source contracts",

@@ -75,6 +75,18 @@ class NXBuildMetadataContract(unittest.TestCase):
 
 
 class NXWorkflowContract(unittest.TestCase):
+    def test_preferences_stub_is_in_the_scheme_specific_framework_search_root(self):
+        workflow=json.loads(text('.github/workflows/roothide.yml'))
+        job=workflow['jobs']['build']
+        step=[s for s in job['steps'] if s['name']=='Stage hash-pinned Preferences link stub only']
+        self.assertEqual(len(step),1)
+        body=step[0]['run']
+        expected='$THEOS/lib/iphone/'+job['env']['THEOS_PACKAGE_SCHEME']+'/Preferences.framework'
+        targets=re.findall(r'(?m)^\s*target="([^"]+)"',body)
+        self.assertEqual(targets,[expected+'/Preferences.tbd'],
+                         'stub must live in the scheme-specific Theos framework search root')
+        self.assertIn('mkdir -p "'+expected+'"',body)
+
     def test_one_pinned_cloud_lane_preserves_failure_and_original(self):
         raw = text(".github/workflows/roothide.yml")
         self.assertTrue(raw, "missing pinned RootHide workflow")
@@ -126,7 +138,7 @@ def nx_tool(case, name):
     return module
 
 
-def nx_thin(subtype=0, module="NoticeX", platform=2, minimum=0xF0000, swift=True):
+def nx_thin(subtype=0, module="NoticeX", platform=2, minimum=0xF0000, swift=True, filetype=6):
     """Tiny signed *synthetic* parser fixture, NOT an Apple compilation."""
     def dylib(cmd, name):
         value = name.encode() + b"\0"
@@ -156,7 +168,7 @@ def nx_thin(subtype=0, module="NoticeX", platform=2, minimum=0xF0000, swift=True
     else:
         commands += [dylib(0xC, "/System/Library/PrivateFrameworks/Preferences.framework/Preferences")]
     header = struct.pack("<IiiIIIII", 0xFEEDFACF, 0x100000C, subtype,
-                         6 if module == "NoticeX" else 8, len(commands), sum(map(len, commands)), 0, 0)
+                         filetype, len(commands), sum(map(len, commands)), 0, 0)
     body = bytearray(sigoff)
     body[:len(header)] = header
     body[32:32 + sum(map(len, commands))] = b"".join(commands)
@@ -245,6 +257,18 @@ class NXOriginalDebContract(unittest.TestCase):
                 self.assertEqual(row["minimum_os"], [15, 0, 0])
                 self.assertTrue(row["swift_defined_symbols"])
                 self.assertTrue(all(cd["all_code_page_hashes_verified"] for cd in row["code_directories"]))
+
+    def test_theos_preferences_is_dynamic_library_not_macho_bundle(self):
+        # Pinned iPhoneOS bundle.mk links with -dynamiclib, even inside a .bundle directory.
+        files=nx_payload()
+        files[NX_BUNDLE+'NoticeXPrefs']=nx_fat('NoticeXPrefs',filetype=6)
+        self.verify(nx_deb(files))
+        for name,module in ((NX_TWEAK,'NoticeX'),(NX_BUNDLE+'NoticeXPrefs','NoticeXPrefs')):
+            with self.subTest(target=module):
+                invalid=dict(files)
+                invalid[name]=nx_fat(module,filetype=8)
+                with self.assertRaisesRegex(AssertionError,'file type'):
+                    self.verify(nx_deb(invalid))
 
     def test_rejects_stale_preferences_bundle_version(self):
         files = nx_payload()

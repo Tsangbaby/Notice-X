@@ -252,7 +252,8 @@ def verify_macho(path, expected_archs=("arm64", "arm64e"), module=None):
                    for i in range(len(blobranges) - 1)), "overlapping signature subblobs"
         metadata = slice_metadata(blob, endian, ncmds, sizeofcmds, module) if module else {}
         if module:
-            assert filetype == (6 if module == "NoticeX" else 8), "wrong Mach-O target file type"
+            # The pinned iPhoneOS bundle.mk uses -dynamiclib for Preferences as well.
+            assert filetype == 6, "wrong Mach-O target file type"
         results.append({
             **metadata,
             "architecture": arch,
