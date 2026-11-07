@@ -2,6 +2,7 @@
 static NSMutableArray<NSString *> *events;
 static NSLock *eventLock;
 static NSInteger installs;
+static BOOL reenterOnNextDisappear;
 static void NXFixtureSetup(void) {
     static dispatch_once_t once;dispatch_once(&once,^{events=[NSMutableArray new];eventLock=[NSLock new];});
 }
@@ -9,6 +10,7 @@ void NXFixtureRecord(NSString *event) { NXFixtureSetup();[eventLock lock];[event
 NSArray<NSString *> *NXFixtureEvents(void) { NXFixtureSetup();[eventLock lock];NSArray *copy=[events copy];[eventLock unlock];return copy; }
 void NXFixtureClearEvents(void) { NXFixtureSetup();[eventLock lock];[events removeAllObjects];[eventLock unlock]; }
 NSInteger NXFixtureHookCount(void) { return installs; }
+void NXFixtureReenterOnNextDisappear(void) { reenterOnNextDisappear=YES; }
 void MSHookMessageEx(Class cls, SEL selector, IMP replacement, IMP *original) {
     Method method=class_getInstanceMethod(cls,selector);
     *original=method_getImplementation(method);
@@ -37,7 +39,13 @@ void MSHookMessageEx(Class cls, SEL selector, IMP replacement, IMP *original) {
 #endif
 - (void)presentableDidAppearAsBanner:(id)value { (void)value;NXFixtureRecord(@"native:did"); }
 - (void)presentableWillDisappearAsBanner:(id)value withReason:(id)reason { (void)value;(void)reason;NXFixtureRecord(@"native:willClose"); }
-- (void)presentableDidDisappearAsBanner:(id)value withReason:(id)reason { (void)value;(void)reason;NXFixtureRecord(@"native:didClose"); }
+- (void)presentableDidDisappearAsBanner:(id)value withReason:(id)reason {
+    (void)reason;NXFixtureRecord(@"native:didClose");
+    if (reenterOnNextDisappear) {
+        reenterOnNextDisappear=NO;
+        [self presentableWillAppearAsBanner:value];
+    }
+}
 - (void)presentableWillNotAppearAsBanner:(id)value withReason:(id)reason { (void)value;(void)reason;NXFixtureRecord(@"native:notAppear"); }
 - (void)userInteractionWillBeginForBannerForPresentable:(id)value { (void)value;NXFixtureRecord(@"native:interact"); }
 - (void)longLookWillPresentForNotificationViewController:(id)value { (void)value;NXFixtureRecord(@"native:long"); }

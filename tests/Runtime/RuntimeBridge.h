@@ -7,3 +7,4 @@ NSArray<NSString *> *NXFixtureEvents(void);
 void NXFixtureClearEvents(void);
 id NXFixtureMakeOwner(void);
 NSInteger NXFixtureHookCount(void);
+void NXFixtureReenterOnNextDisappear(void);

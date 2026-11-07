@@ -85,10 +85,11 @@ private let nxWillDisappearCallback: NXReasonCallback = { owner, selector, prese
     }
 }
 private let nxDidDisappearCallback: NXReasonCallback = { owner, selector, presentable, reason in
+    // Retire before native code can synchronously install a replacement for this owner.
+    if Thread.isMainThread { NXBannerCoordinator.shared.retire(owner) }
     if let previous = nxDidDisappear.original {
         unsafeBitCast(previous,to:NXReasonCallback.self)(owner,selector,presentable,reason)
     }
-    if Thread.isMainThread { NXBannerCoordinator.shared.retire(owner) }
 }
 private let nxWillNotAppearCallback: NXReasonCallback = { owner, selector, presentable, reason in
     if Thread.isMainThread { NXBannerCoordinator.shared.retire(owner) }

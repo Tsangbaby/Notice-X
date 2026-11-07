@@ -4,12 +4,18 @@ import ObjectiveC
 // Explicit test-only coordinator; production hook slot and callback bodies remain unchanged.
 final class NXBannerCoordinator {
     static let shared = NXBannerCoordinator()
+    private var sessions = Set<ObjectIdentifier>()
     func start() { NXFixtureRecord("swift:start") }
-    func willAppear(_ owner:AnyObject) { NXFixtureRecord("swift:will") }
+    func willAppear(_ owner:AnyObject) {
+        sessions.insert(ObjectIdentifier(owner));NXFixtureRecord("swift:will")
+    }
     func didAppear(_ owner:AnyObject) { NXFixtureRecord("swift:did") }
     func willDisappear(_ owner:AnyObject) { NXFixtureRecord("swift:willClose") }
-    func retire(_ owner:AnyObject) { NXFixtureRecord("swift:retire") }
+    func retire(_ owner:AnyObject) {
+        sessions.remove(ObjectIdentifier(owner));NXFixtureRecord("swift:retire")
+    }
     func layout(_ owner:AnyObject) { NXFixtureRecord("swift:layout") }
+    func hasSession(_ owner:AnyObject) -> Bool { sessions.contains(ObjectIdentifier(owner)) }
 }
 private typealias One = @convention(c)(AnyObject,Selector,AnyObject?) -> Void
 private typealias Two = @convention(c)(AnyObject,Selector,AnyObject?,AnyObject?) -> Void
@@ -45,7 +51,7 @@ DispatchQueue.main.async {
                 ("presentableWillAppearAsBanner:",1,["swift:will","native:will","swift:layout"]),
                 ("presentableDidAppearAsBanner:",1,["native:did","swift:did"]),
                 ("presentableWillDisappearAsBanner:withReason:",2,["swift:willClose","native:willClose"]),
-                ("presentableDidDisappearAsBanner:withReason:",2,["native:didClose","swift:retire"]),
+                ("presentableDidDisappearAsBanner:withReason:",2,["swift:retire","native:didClose"]),
                 ("presentableWillNotAppearAsBanner:withReason:",2,["swift:retire","native:notAppear"]),
                 ("userInteractionWillBeginForBannerForPresentable:",1,["swift:retire","native:interact"]),
                 ("longLookWillPresentForNotificationViewController:",1,["swift:retire","native:long"]),
@@ -55,6 +61,14 @@ DispatchQueue.main.async {
                 NXFixtureClearEvents();invoke(selector,count)
                 require(events()==expected,"exactly-once native forwarding and owner ordering: "+selector)
             }
+            invoke("presentableWillAppearAsBanner:",1)
+            NXFixtureReenterOnNextDisappear()
+            NXFixtureClearEvents()
+            invoke("presentableDidDisappearAsBanner:withReason:",2)
+            require(NXBannerCoordinator.shared.hasSession(owner),
+                    "native disappearance reentry preserves replacement session")
+            require(events()==["swift:retire","native:didClose","swift:will","native:will","swift:layout"],
+                    "old retirement completes before native reentrant appearance")
             NXFixtureClearEvents()
             let finished=DispatchSemaphore(value:0)
             DispatchQueue.global().async { invoke("presentableDidAppearAsBanner:",1);finished.signal() }
